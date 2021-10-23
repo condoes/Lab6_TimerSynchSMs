@@ -3,6 +3,8 @@
  *	Lab Section: 23
  *	Assignment: Lab #6  Exercise #1
  *	Exercise Description: [optional - include for your own benefit]
+
+ DEMO LINK: https://drive.google.com/file/d/1qKuRjLsc1uhZHsbZPnqznZ18Sst66XDF/view?usp=sharing
  *
  *	I acknowledge all content contained herein, excluding template or example
  *	code, is my own original work.
@@ -14,7 +16,7 @@
 #include "simAVRHeader.h"
 #endif
 
-enum states {start, B0, B1, B2} state;
+enum state {start, B0, B1, B2} states;
 
 void Tick() {
 	switch(state) {
@@ -49,7 +51,6 @@ int main(void) {
 	PORTB = 0x00;
 	TimerSet(1000);
 	TimerOn();
-	//unsigned char tmpB = 0x00;
 
     /* Insert your solution below */
     while (1) {
