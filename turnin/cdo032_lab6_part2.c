@@ -1,7 +1,7 @@
 /*	Author: Cindy Do
  *  Partner(s) Name: 
  *	Lab Section: 23
- *	Assignment: Lab #6  Exercise #1
+ *	Assignment: Lab #6  Exercise #2
  *	Exercise Description: [optional - include for your own benefit]
 
 DEMO VIDEO : https://drive.google.com/file/d/1pNSv-3DrcKzhETgTRDeLnzqytqBgznHC/view?usp=sharing

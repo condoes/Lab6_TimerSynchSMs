@@ -1,21 +1,24 @@
 /*	Author: Cindy Do
  *  Partner(s) Name: 
  *	Lab Section: 23
- *	Assignment: Lab #5  Exercise #2
- *	Exercise Description: PB0 and PB1 each connect to an LED, and PB0's LED is initially on. Pressing a button connected to PA0 turns off PB0's LED and turns on PB1's LED, staying that way after button release. Pressing the button again turns off PB1's LED and turns on PB0's LED. 
+ *	Assignment: Lab #6  Exercise #3
+ *	Exercise Description: 
+
+DEMO LINK: https://drive.google.com/file/d/1QcPh6grZiNpIF_nnbxLxdDL3cpMfZkEB/view?usp=sharing
  *
  *	I acknowledge all content contained herein, excluding template or example
  *	code, is my own original work.
  */
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #ifdef _SIMULATE_
 #include "timer.h"
-#include <avr/interrupt.h>
 #include "simAVRHeader.h"
 #endif
 
 enum States { Start, init, incr, decr, reset } State;
-unsigned char i = 0x00; //counter
+unsigned char i = 0x00; //counter for 1000ms
+unsigned char tmpA = 0x00;
 
 void Tick() {
 	
@@ -26,113 +29,96 @@ void Tick() {
             break;
 
         case init: 
-            if(PINA == 0xFD) {
+            tmpA = ~PINA & 0x03;
+            if(tmpA == 0x02) {
                 State = decr;
-		
+                if (PORTB > 0) {
+                    PORTB = PORTB - 1;
+                }
+                i = 0;
             }
-            if(PINA == 0xFC){
-                State = reset; 
+            if(tmpA == 0x03){
+                State = reset;
+                PORTB = 0x00;
             }
-            if(PINA == 0xFE) {    
-                State = incr; 
+            if(tmpA == 0x01) {
+                State = incr;
+                if (PORTB < 9) {
+                    PORTB = PORTB + 1;
+                }
+                i = 0;
             }
-            if(PINA == 0xFF) {
-                State = init; 
-            }     
+            if(tmpA == 0) {
+                State = init;
+            }
             break;
 
         case incr: 
-            if(PINA == 0xFC) {
+            tmpA = ~PINA & 0x03;
+            if(i == 10) {
+                if(PORTB < 9) {
+                    PORTB = PORTB +1;
+                }
+                i = 0;
+            }
+            if(tmpA == 3) {
                 State = reset;
-                PORTB = 0x0;
-            }
-            if(PINA == 0xFD) {
-                State = decr;
-            }
-            if(PINA == 0xFE) {
-                i++; State = incr;
-                
-		if(i == 10){
-		        i = 0;
-		        State = incr;
-            	}
+                PORTB = 0x00;
             }
             
-            if(PINA == 0xFF){
-                State = init; 
+            if(tmpA == 1) {
+		State = incr;
+		i++;
+            }
+            else if(tmpA == 0){
+                State = init;
             }
 		
             break;
 
         case decr: 
-            if(PINA == 0xFC) {
-                State = reset;
-                PORTB = 0x0;
-            }
-            if(PINA == 0xFE) {
-                State = incr; i++;
-            }
-            if(PINA == 0xFF){
-                State = init;
-            }
-            if(PINA == 0xFD) {
-                State = decr;
-                i++;
-		if(i == 10) {
-		        State = decr;
+            tmpA = ~PINA & 0x03;
+            if(i == 10) {
+                if(PORTB > 0) {
+                    PORTB = PORTB - 1;
+                } 
 		        i = 0;
-            	}    
             }
-              
+            if(tmpA == 3) {
+                State = reset;
+                PORTB = 0x00;
+            }
+            
+            if(tmpA == 2) {
+                State = decr;
+		i++;
+            }
+            else if(tmpA == 0){
+                State = init;
+            }  
             break;
 
         case reset: 
-            if(PINA == 0xFE) {  
+            tmpA = ~PINA & 0x03;
+            if(tmpA == 1) {  
                 State = incr;
+		        if(PORTB < 9) { PORTB = PORTB + 1; }
+		        i = 0;
             }
-            if(PINA == 0xFD) {
+            if(tmpA == 2) {
                 State = decr;
             }
-            if(PINA == 0xFF){
+            if(tmpA == 0){
                 State = init;
             }   
             break;
 
         default: 
             State = Start;
+		    PORTB = 0x07;
             break; 
     }
 
-	switch(State) {
-	case Start: 
-            PORTB = 0x07;
-            break;
-
-        case init: 
-            i = 0;
-            break;
-
-        case incr: 
-            if(PORTB < 9) {
-                PORTB = PORTB + 1;
-            }
-            break;
-
-        case decr: 
-            if(PORTB > 0) {
-                PORTB = PORTB - 1;
-            }
-            break;
-
-        case reset: 
-            PORTB = 0x0;
-            break;
-
-        default: 
-            PORTB = 0x07;
-            break;
-
-}
 }
 
 int main(void) {
@@ -142,12 +128,13 @@ int main(void) {
 
 	TimerSet(100);
 	TimerOn();
+	State = Start;
 
     /* Insert your solution below */
     while (1) {
         Tick();
-	while(!TimerFlag) {};
-	TimerFlag = 0;
+        while(!TimerFlag) {};
+        TimerFlag = 0;
     }
     return 1;
 }
