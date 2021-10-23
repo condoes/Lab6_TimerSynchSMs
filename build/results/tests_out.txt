@@ -1,0 +1,10 @@
+Breakpoint 1 at 0x4ec: file source/main.c, line 106.
+Note: automatically using hardware breakpoints for read-only addresses.
+======================================================
+Running all tests..."
+
+"Initial LED = B0"..."1 second = B1"..."2 seconds = B2"..."Pressing A0"..."Releasing A0"..."reset"..."press on B1"...
+	Expected light_change but got state:3
+	Expected B_release but got state:3
+	Expected 0x02 but got PORTB:1======================================================
+Remote doesn't know how to detach

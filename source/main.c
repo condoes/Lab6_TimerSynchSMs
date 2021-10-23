@@ -14,40 +14,80 @@
 #include "simAVRHeader.h"
 #endif
 
-enum states {start, B0, B1, B2} state;
+enum states {start, init, light_change, B_press, B_release} state;
+unsigned char tmpA = 0x00;
+unsigned char arr[3] = {0x01, 0x02, 0x04};
+unsigned char i = 0;
+//unsigned char tmpB = 0x00;
 
 void Tick() {
 	switch(state) {
         case start:
-            state = B0;
+            state = init;
+            PORTB = arr[0];
+		i = 1;
             break;
 
-        case B0: 
-            state = B1;
-            PORTB = 0x01;
-            break;
-        
-        case B1: 
-            state = B2;
-            PORTB = 0x02;
+        case init:   
+	tmpA = ~PINA & 0x01;
+            if(tmpA == 0) {
+		if(i < 3) {
+                    PORTB = arr[i];
+                    i++;
+                }
+		if(i == 3) { i--; state = light_change; }
+              
+
+            }
+            else{
+                state = B_press;
+		
+            }
             break;
 
-        case B2: 
-            state = B0;
-            PORTB = 0x04;
+        case light_change: 
+	tmpA = ~PINA & 0x01;    
+            if(tmpA == 0) {
+		if(i != 0) { i--; PORTB = arr[i]; }
+		if(i == 0) {i++; state = init;}
+                }
+            else {
+                state = B_press;
+            }
             break;
 
+        case B_press: 
+	if(~PINA & 0x01 == 1){
+            state = B_press;	  
+            }
+	else{
+	state = B_release;
+	}	
+
+            break;
+
+        case B_release:               
+            if(~PINA & 0x01){
+                i = 0;
+		//PORTB = arr[0];
+                state = init;
+            }
+	else {
+                state = B_release;
+		
+	}
+break;
+          
         default: 
             state = start;
-            PORTB = 0x01;
     }
 }
 
 int main(void) {
     /* Insert DDR and PORT initializations */
-	DDRB = 0xFF;
-	PORTB = 0x00;
-	TimerSet(1000);
+	DDRA = 0x00; PORTA = 0xFF;
+	DDRB = 0xFF; PORTB = 0x00;
+	TimerSet(300);
 	TimerOn();
 	//unsigned char tmpB = 0x00;
 
